@@ -112,3 +112,12 @@ class TestCurrentUser:
         response = client.get(ME_URL, headers={"Authorization": "Bearer nonsense"})
 
         assert response.status_code == 401
+
+
+class TestPasswordLimits:
+    def test_rejects_password_longer_than_bcrypt_limit(self, client):
+        # bcrypt only accepts up to 72 bytes; longer input must be a 422, not a 500.
+        assert register(client, password="a" * 73).status_code == 422
+
+    def test_byte_limit_counts_multibyte_characters(self, client):
+        assert register(client, password="é" * 37).status_code == 422  # 74 bytes
