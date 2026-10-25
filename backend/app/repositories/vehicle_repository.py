@@ -50,6 +50,11 @@ class VehicleRepository:
         self._db.refresh(vehicle)
         return vehicle
 
+    def refresh(self, vehicle: Vehicle) -> Vehicle:
+        """Reload a vehicle from the database (e.g. after a bulk UPDATE)."""
+        self._db.refresh(vehicle)
+        return vehicle
+
     def update(self, vehicle: Vehicle, changes: dict) -> Vehicle:
         for field, value in changes.items():
             setattr(vehicle, field, value)
