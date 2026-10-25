@@ -51,3 +51,9 @@ class TestAccessTokens:
     def test_garbage_token_is_rejected(self):
         with pytest.raises(InvalidTokenError):
             decode_access_token("not-a-jwt")
+
+
+def test_verify_returns_false_for_password_over_bcrypt_limit():
+    hashed = hash_password("s3cret-pass")
+
+    assert verify_password("x" * 100, hashed) is False

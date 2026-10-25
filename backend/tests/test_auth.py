@@ -121,3 +121,10 @@ class TestPasswordLimits:
 
     def test_byte_limit_counts_multibyte_characters(self, client):
         assert register(client, password="é" * 37).status_code == 422  # 74 bytes
+
+    def test_login_with_overlong_password_is_a_normal_401(self, client):
+        register(client)
+
+        response = client.post(LOGIN_URL, json={"email": "asha@example.com", "password": "a" * 100})
+
+        assert response.status_code == 401
