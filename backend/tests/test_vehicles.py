@@ -4,19 +4,7 @@ import pytest
 
 VEHICLES_URL = "/api/vehicles"
 
-CIVIC = {"make": "Honda", "model": "Civic", "category": "Sedan", "price": 24500.0, "quantity": 5}
-
-
-@pytest.fixture
-def create_vehicle(client, admin_headers):
-    """Factory that creates a vehicle through the API as an admin and returns the JSON body."""
-
-    def _create(**overrides):
-        response = client.post(VEHICLES_URL, json={**CIVIC, **overrides}, headers=admin_headers)
-        assert response.status_code == 201, response.text
-        return response.json()
-
-    return _create
+from tests.conftest import CIVIC
 
 
 class TestCreateVehicle:

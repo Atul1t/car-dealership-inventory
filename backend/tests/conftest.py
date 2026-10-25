@@ -103,3 +103,22 @@ def admin_headers(client: TestClient, db_session: Session) -> dict[str, str]:
         role=UserRole.ADMIN,
     )
     return _login_headers(client, "admin@example.com", "adminpass123")
+
+
+# ---------------------------------------------------------------------------
+# Vehicle helpers
+# ---------------------------------------------------------------------------
+
+CIVIC = {"make": "Honda", "model": "Civic", "category": "Sedan", "price": 24500.0, "quantity": 5}
+
+
+@pytest.fixture
+def create_vehicle(client: TestClient, admin_headers: dict[str, str]):
+    """Factory that creates a vehicle through the API as an admin and returns the JSON body."""
+
+    def _create(**overrides):
+        response = client.post("/api/vehicles", json={**CIVIC, **overrides}, headers=admin_headers)
+        assert response.status_code == 201, response.text
+        return response.json()
+
+    return _create
