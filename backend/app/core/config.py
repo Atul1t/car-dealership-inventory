@@ -17,6 +17,9 @@ class Settings(BaseSettings):
     jwt_algorithm: str = "HS256"
     jwt_expire_minutes: int = 60
 
+    # bcrypt work factor. Tests lower it to keep the suite fast.
+    bcrypt_rounds: int = 12
+
     # Comma-separated list of origins allowed to call the API from a browser.
     cors_origins: str = "http://localhost:5173"
 

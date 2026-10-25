@@ -7,6 +7,9 @@ If it's not set, a throwaway SQLite file is used so the suite runs with zero set
 import os
 from collections.abc import Iterator
 
+# Must be set before app settings are first read (they are cached).
+os.environ.setdefault("BCRYPT_ROUNDS", "4")
+
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine

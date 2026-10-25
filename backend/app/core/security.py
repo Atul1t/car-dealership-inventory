@@ -17,7 +17,7 @@ class InvalidTokenError(Exception):
 
 
 def hash_password(plain_password: str) -> str:
-    return bcrypt.hashpw(plain_password.encode(), bcrypt.gensalt()).decode()
+    return bcrypt.hashpw(plain_password.encode(), bcrypt.gensalt(rounds=get_settings().bcrypt_rounds)).decode()
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
