@@ -67,3 +67,11 @@ class VehicleSearchCriteria(BaseModel):
         if value is None or not value.strip():
             return None
         return value.strip()
+
+
+class PurchaseRequest(BaseModel):
+    quantity: Annotated[int, Field(gt=0)] = 1
+
+
+class RestockRequest(BaseModel):
+    quantity: Annotated[int, Field(gt=0)]

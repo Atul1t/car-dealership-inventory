@@ -42,3 +42,18 @@ class VehicleService:
 
     def delete(self, vehicle_id: int) -> None:
         self._vehicles.delete(self.get(vehicle_id))
+
+    def purchase(self, vehicle_id: int, quantity: int = 1) -> Vehicle:
+        vehicle = self.get(vehicle_id)
+        if not self._vehicles.decrement_stock(vehicle.id, quantity):
+            raise BusinessRuleError("Insufficient stock")
+        return self._refreshed(vehicle)
+
+    def restock(self, vehicle_id: int, quantity: int) -> Vehicle:
+        vehicle = self.get(vehicle_id)
+        if not self._vehicles.increment_stock(vehicle.id, quantity):
+            raise NotFoundError("Vehicle not found")  # deleted between the two queries
+        return self._refreshed(vehicle)
+
+    def _refreshed(self, vehicle: Vehicle) -> Vehicle:
+        return self.get(vehicle.id)

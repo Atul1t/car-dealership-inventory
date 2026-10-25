@@ -2,7 +2,7 @@
 
 from decimal import Decimal
 
-from sqlalchemy import func, select
+from sqlalchemy import func, select, update
 from sqlalchemy.orm import Session
 
 from app.models.vehicle import Vehicle
@@ -60,3 +60,22 @@ class VehicleRepository:
     def delete(self, vehicle: Vehicle) -> None:
         self._db.delete(vehicle)
         self._db.commit()
+
+    def decrement_stock(self, vehicle_id: int, amount: int) -> bool:
+        """Atomically remove `amount` units. Returns False (changing nothing) if there
+        isn't enough stock, so two concurrent purchases can never oversell."""
+        result = self._db.execute(
+            update(Vehicle)
+            .where(Vehicle.id == vehicle_id, Vehicle.quantity >= amount)
+            .values(quantity=Vehicle.quantity - amount)
+        )
+        self._db.commit()
+        return result.rowcount == 1
+
+    def increment_stock(self, vehicle_id: int, amount: int) -> bool:
+        """Atomically add `amount` units. Returns False if the vehicle doesn't exist."""
+        result = self._db.execute(
+            update(Vehicle).where(Vehicle.id == vehicle_id).values(quantity=Vehicle.quantity + amount)
+        )
+        self._db.commit()
+        return result.rowcount == 1
