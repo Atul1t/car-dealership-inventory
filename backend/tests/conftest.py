@@ -122,3 +122,10 @@ def create_vehicle(client: TestClient, admin_headers: dict[str, str]):
         return response.json()
 
     return _create
+
+
+def find_vehicle(client: TestClient, headers: dict[str, str], vehicle_id: int) -> dict | None:
+    """Look a vehicle up through GET /api/vehicles (the spec has no get-by-id endpoint)."""
+    response = client.get("/api/vehicles", headers=headers)
+    assert response.status_code == 200, response.text
+    return next((v for v in response.json() if v["id"] == vehicle_id), None)

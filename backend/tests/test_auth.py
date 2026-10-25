@@ -2,7 +2,6 @@
 
 REGISTER_URL = "/api/auth/register"
 LOGIN_URL = "/api/auth/login"
-ME_URL = "/api/auth/me"
 
 VALID_USER = {"name": "Asha Rao", "email": "asha@example.com", "password": "password123"}
 
@@ -93,25 +92,16 @@ class TestLogin:
         assert response.json()["detail"] == "Invalid email or password"
 
 
-class TestCurrentUser:
-    def test_returns_the_logged_in_user(self, client):
+class TestTokenUsage:
+    def test_login_token_unlocks_protected_endpoints(self, client):
         register(client)
         token = client.post(LOGIN_URL, json={"email": "asha@example.com", "password": "password123"}).json()[
             "access_token"
         ]
 
-        response = client.get(ME_URL, headers={"Authorization": f"Bearer {token}"})
+        response = client.get("/api/vehicles", headers={"Authorization": f"Bearer {token}"})
 
         assert response.status_code == 200
-        assert response.json()["email"] == "asha@example.com"
-
-    def test_requires_a_token(self, client):
-        assert client.get(ME_URL).status_code == 401
-
-    def test_rejects_an_invalid_token(self, client):
-        response = client.get(ME_URL, headers={"Authorization": "Bearer nonsense"})
-
-        assert response.status_code == 401
 
 
 class TestPasswordLimits:

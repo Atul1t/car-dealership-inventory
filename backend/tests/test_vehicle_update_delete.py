@@ -1,10 +1,12 @@
 """Integration tests for PUT and DELETE /api/vehicles/{id}."""
 
+from tests.conftest import find_vehicle
+
 VEHICLES_URL = "/api/vehicles"
 
 
 class TestUpdateVehicle:
-    def test_admin_can_update_details(self, client, admin_headers, create_vehicle):
+    def test_updates_details(self, client, admin_headers, create_vehicle):
         vehicle = create_vehicle()
 
         response = client.put(
@@ -25,16 +27,17 @@ class TestUpdateVehicle:
         vehicle = create_vehicle()
         client.put(f"{VEHICLES_URL}/{vehicle['id']}", json={"model": "Civic Type R"}, headers=admin_headers)
 
-        fetched = client.get(f"{VEHICLES_URL}/{vehicle['id']}", headers=user_headers).json()
+        fetched = find_vehicle(client, user_headers, vehicle["id"])
 
         assert fetched["model"] == "Civic Type R"
 
-    def test_regular_user_cannot_update(self, client, user_headers, create_vehicle):
+    def test_any_logged_in_user_can_update(self, client, user_headers, create_vehicle):
+        # The spec marks PUT /api/vehicles/:id as protected, not admin-only.
         vehicle = create_vehicle()
 
         response = client.put(f"{VEHICLES_URL}/{vehicle['id']}", json={"price": 1}, headers=user_headers)
 
-        assert response.status_code == 403
+        assert response.status_code == 200
 
     def test_unknown_vehicle_is_404(self, client, admin_headers):
         response = client.put(f"{VEHICLES_URL}/9999", json={"price": 1000}, headers=admin_headers)
@@ -68,7 +71,7 @@ class TestDeleteVehicle:
         response = client.delete(f"{VEHICLES_URL}/{vehicle['id']}", headers=admin_headers)
 
         assert response.status_code == 204
-        assert client.get(f"{VEHICLES_URL}/{vehicle['id']}", headers=user_headers).status_code == 404
+        assert find_vehicle(client, user_headers, vehicle["id"]) is None
 
     def test_regular_user_cannot_delete(self, client, user_headers, create_vehicle):
         vehicle = create_vehicle()
@@ -76,7 +79,7 @@ class TestDeleteVehicle:
         response = client.delete(f"{VEHICLES_URL}/{vehicle['id']}", headers=user_headers)
 
         assert response.status_code == 403
-        assert client.get(f"{VEHICLES_URL}/{vehicle['id']}", headers=user_headers).status_code == 200
+        assert find_vehicle(client, user_headers, vehicle["id"]) is not None
 
     def test_unknown_vehicle_is_404(self, client, admin_headers):
         assert client.delete(f"{VEHICLES_URL}/9999", headers=admin_headers).status_code == 404

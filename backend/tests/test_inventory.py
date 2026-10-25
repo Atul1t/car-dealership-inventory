@@ -2,6 +2,8 @@
 
 import pytest
 
+from tests.conftest import find_vehicle
+
 VEHICLES_URL = "/api/vehicles"
 
 
@@ -14,7 +16,7 @@ def restock_url(vehicle_id):
 
 
 def stock_of(client, headers, vehicle_id):
-    return client.get(f"{VEHICLES_URL}/{vehicle_id}", headers=headers).json()["quantity"]
+    return find_vehicle(client, headers, vehicle_id)["quantity"]
 
 
 class TestPurchase:
