@@ -1,9 +1,11 @@
 """Vehicle catalogue endpoints. Every route requires a logged-in user; writes require an admin."""
 
-from fastapi import APIRouter, status
+from typing import Annotated
+
+from fastapi import APIRouter, Query, status
 
 from app.api.deps import AdminUser, CurrentUser, VehicleServiceDep
-from app.schemas.vehicle import VehicleCreate, VehicleResponse
+from app.schemas.vehicle import VehicleCreate, VehicleResponse, VehicleSearchCriteria
 
 router = APIRouter(prefix="/api/vehicles", tags=["vehicles"])
 
@@ -15,7 +17,17 @@ def create_vehicle(payload: VehicleCreate, service: VehicleServiceDep, _: AdminU
 
 @router.get("", response_model=list[VehicleResponse])
 def list_vehicles(service: VehicleServiceDep, _: CurrentUser, in_stock: bool = False):
-    return service.list(in_stock_only=in_stock)
+    return service.list_all(in_stock_only=in_stock)
+
+
+# Declared before "/{vehicle_id}" so "search" isn't parsed as an id.
+@router.get("/search", response_model=list[VehicleResponse])
+def search_vehicles(
+    criteria: Annotated[VehicleSearchCriteria, Query()],
+    service: VehicleServiceDep,
+    _: CurrentUser,
+):
+    return service.search(criteria)
 
 
 @router.get("/{vehicle_id}", response_model=VehicleResponse)

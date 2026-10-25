@@ -3,7 +3,7 @@
 from decimal import Decimal
 from typing import Annotated
 
-from pydantic import BaseModel, ConfigDict, Field, StringConstraints
+from pydantic import BaseModel, ConfigDict, Field, StringConstraints, field_validator
 
 # Text fields are trimmed and must not be blank after trimming.
 Make = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=50)]
@@ -30,3 +30,20 @@ class VehicleResponse(BaseModel):
     category: str
     price: float
     quantity: int
+
+
+class VehicleSearchCriteria(BaseModel):
+    """Optional filters for searching the catalogue. Blank strings mean "no filter"."""
+
+    make: str | None = None
+    model: str | None = None
+    category: str | None = None
+    min_price: Decimal | None = Field(default=None, ge=0)
+    max_price: Decimal | None = Field(default=None, ge=0)
+
+    @field_validator("make", "model", "category")
+    @classmethod
+    def blank_means_no_filter(cls, value: str | None) -> str | None:
+        if value is None or not value.strip():
+            return None
+        return value.strip()
