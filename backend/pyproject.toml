@@ -10,7 +10,7 @@ addopts = "-ra"
 
 [tool.coverage.run]
 source = ["app"]
-omit = ["app/scripts/*"]
+omit = ["app/scripts/__main__.py"]
 
 [tool.coverage.report]
 show_missing = true
