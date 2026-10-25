@@ -13,7 +13,7 @@ class Settings(BaseSettings):
     app_name: str = "Car Dealership Inventory API"
     database_url: str = "postgresql+psycopg://postgres:postgres@localhost:5432/dealership"
 
-    jwt_secret_key: str = "dev-only-secret-change-me"
+    jwt_secret_key: str = "dev-only-secret-change-me-in-production-please"
     jwt_algorithm: str = "HS256"
     jwt_expire_minutes: int = 60
 
