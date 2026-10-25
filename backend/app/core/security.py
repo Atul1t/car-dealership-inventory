@@ -21,7 +21,11 @@ def hash_password(plain_password: str) -> str:
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    return bcrypt.checkpw(plain_password.encode(), hashed_password.encode())
+    try:
+        return bcrypt.checkpw(plain_password.encode(), hashed_password.encode())
+    except ValueError:
+        # bcrypt>=5 raises for inputs over 72 bytes; such a password can never match.
+        return False
 
 
 def create_access_token(subject: str, role: str, expires_in: timedelta | None = None) -> str:
