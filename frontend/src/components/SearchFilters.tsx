@@ -45,10 +45,10 @@ export function SearchFilters({ categories, searching, onSearch, onClear }: Sear
       className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200 sm:p-5"
       noValidate
     >
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-[1fr_1fr_1fr_0.8fr_0.8fr_auto]">
-        <TextField label="Make" placeholder="e.g. Tata" value={filters.make} onChange={update('make')} />
-        <TextField label="Model" placeholder="e.g. Nexon" value={filters.model} onChange={update('model')} />
-        <div>
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-[1fr_1fr_1fr_0.8fr_0.8fr_auto]">
+        <TextField className="col-span-2 sm:col-span-1" label="Make" placeholder="e.g. Tata" value={filters.make} onChange={update('make')} />
+        <TextField className="col-span-2 sm:col-span-1" label="Model" placeholder="e.g. Nexon" value={filters.model} onChange={update('model')} />
+        <div className="col-span-2 lg:col-span-1">
           <label htmlFor="filter-category" className="mb-1.5 block text-sm font-medium text-slate-700">
             Category
           </label>
@@ -82,7 +82,7 @@ export function SearchFilters({ categories, searching, onSearch, onClear }: Sear
           value={filters.maxPrice}
           onChange={update('maxPrice')}
         />
-        <div className="flex items-end gap-2 sm:col-span-2 lg:col-span-1">
+        <div className="col-span-2 flex items-end gap-2 lg:col-span-1">
           <Button type="submit" loading={searching} className="flex-1 lg:flex-none">
             Search
           </Button>
