@@ -76,3 +76,12 @@ class TestSearchVehicles:
 
     def test_requires_authentication(self, client):
         assert client.get(SEARCH_URL).status_code == 401
+
+
+class TestSearchWildcards:
+    @pytest.mark.parametrize("term", ["%", "_", "Hon%a"])
+    def test_sql_wildcards_are_treated_literally(self, client, user_headers, showroom, term):
+        assert search(client, user_headers, make=term).json() == []
+
+    def test_literal_special_characters_still_match(self, client, user_headers, showroom):
+        assert models_in(search(client, user_headers, model="CR-V")) == ["CR-V"]
