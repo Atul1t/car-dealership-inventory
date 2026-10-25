@@ -3,11 +3,9 @@ import { authApi, type LoginPayload, type RegisterPayload } from '../api/auth'
 import { tokenStore } from '../api/client'
 import type { User } from '../types'
 
-type AuthStatus = 'loading' | 'authenticated' | 'anonymous'
-
 interface AuthContextValue {
   user: User | null
-  status: AuthStatus
+  isAuthenticated: boolean
   isAdmin: boolean
   login: (payload: LoginPayload) => Promise<void>
   register: (payload: RegisterPayload) => Promise<void>
@@ -16,43 +14,31 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | null>(null)
 
-export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null)
-  const [status, setStatus] = useState<AuthStatus>(() => (tokenStore.get() ? 'loading' : 'anonymous'))
+/** A session needs both the token and the user saved at login; anything else is discarded. */
+function restoreSession(): User | null {
+  const token = tokenStore.get()
+  const user = tokenStore.getUser()
+  if (token && user) return user
+  if (token || user) tokenStore.clear()
+  return null
+}
 
-  const clearSession = useCallback(() => {
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const [user, setUser] = useState<User | null>(restoreSession)
+
+  const logout = useCallback(() => {
     tokenStore.clear()
     setUser(null)
-    setStatus('anonymous')
   }, [])
 
-  // Restore the session from a stored token on first load.
-  useEffect(() => {
-    if (!tokenStore.get()) return
-    let cancelled = false
-    authApi
-      .me()
-      .then((me) => {
-        if (cancelled) return
-        setUser(me)
-        setStatus('authenticated')
-      })
-      .catch(() => {
-        if (!cancelled) clearSession()
-      })
-    return () => {
-      cancelled = true
-    }
-  }, [clearSession])
-
-  // Any 401 from the API (e.g. expired token) signs the user out.
-  useEffect(() => tokenStore.onUnauthorized(clearSession), [clearSession])
+  // Any 401 from the API (e.g. an expired token) signs the user out.
+  useEffect(() => tokenStore.onUnauthorized(logout), [logout])
 
   const login = useCallback(async (payload: LoginPayload) => {
     const { access_token, user: loggedIn } = await authApi.login(payload)
     tokenStore.set(access_token)
+    tokenStore.setUser(loggedIn)
     setUser(loggedIn)
-    setStatus('authenticated')
   }, [])
 
   const register = useCallback(
@@ -64,8 +50,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   )
 
   const value = useMemo<AuthContextValue>(
-    () => ({ user, status, isAdmin: user?.role === 'admin', login, register, logout: clearSession }),
-    [user, status, login, register, clearSession],
+    () => ({ user, isAuthenticated: user !== null, isAdmin: user?.role === 'admin', login, register, logout }),
+    [user, login, register, logout],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

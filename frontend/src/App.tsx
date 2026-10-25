@@ -5,26 +5,16 @@ import { DashboardPage } from './pages/DashboardPage'
 import { LoginPage } from './pages/LoginPage'
 import { RegisterPage } from './pages/RegisterPage'
 
-function FullPageSpinner() {
-  return (
-    <div className="grid min-h-screen place-items-center" aria-label="Loading">
-      <span className="size-8 animate-spin rounded-full border-4 border-brand-600 border-r-transparent" />
-    </div>
-  )
-}
-
 /** Only for signed-in users; everyone else is sent to /login. */
 function RequireAuth({ children }: { children: ReactNode }) {
-  const { status } = useAuth()
-  if (status === 'loading') return <FullPageSpinner />
-  return status === 'authenticated' ? children : <Navigate to="/login" replace />
+  const { isAuthenticated } = useAuth()
+  return isAuthenticated ? children : <Navigate to="/login" replace />
 }
 
 /** Only for signed-out users; signed-in users go straight to the dashboard. */
 function GuestOnly({ children }: { children: ReactNode }) {
-  const { status } = useAuth()
-  if (status === 'loading') return <FullPageSpinner />
-  return status === 'anonymous' ? children : <Navigate to="/" replace />
+  const { isAuthenticated } = useAuth()
+  return isAuthenticated ? <Navigate to="/" replace /> : children
 }
 
 export function AppRoutes() {

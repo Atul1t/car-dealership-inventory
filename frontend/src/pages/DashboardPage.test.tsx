@@ -1,11 +1,9 @@
 import { screen, waitFor, within } from '@testing-library/react'
-import { authApi } from '../api/auth'
-import { ApiError, tokenStore } from '../api/client'
+import { ApiError } from '../api/client'
 import { vehiclesApi } from '../api/vehicles'
 import { admin, customer, makeVehicle, renderApp, storeSession } from '../test/utils'
 import type { User } from '../types'
 
-vi.mock('../api/auth')
 vi.mock('../api/vehicles')
 
 const nexon = makeVehicle({ id: 1, make: 'Tata', model: 'Nexon EV', category: 'Electric', price: 1449000, quantity: 3 })

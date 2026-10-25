@@ -15,5 +15,4 @@ export interface LoginPayload {
 export const authApi = {
   register: (payload: RegisterPayload) => apiRequest<User>('/api/auth/register', { method: 'POST', body: payload }),
   login: (payload: LoginPayload) => apiRequest<TokenResponse>('/api/auth/login', { method: 'POST', body: payload }),
-  me: () => apiRequest<User>('/api/auth/me'),
 }

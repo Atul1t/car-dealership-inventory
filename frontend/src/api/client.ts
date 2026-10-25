@@ -3,11 +3,14 @@
  *
  * - Adds the JSON content type and the stored bearer token.
  * - Turns error responses into ApiError with a human-readable message.
- * - On 401 it clears the token and notifies listeners (AuthContext logs out).
+ * - On 401 it clears the saved session and notifies listeners (AuthContext logs out).
  */
+
+import type { User } from '../types'
 
 const API_BASE_URL: string = import.meta.env.VITE_API_URL ?? ''
 const TOKEN_KEY = 'dealership.token'
+const USER_KEY = 'dealership.user'
 
 export class ApiError extends Error {
   readonly status: number
@@ -22,7 +25,10 @@ export class ApiError extends Error {
 type Listener = () => void
 const unauthorizedListeners = new Set<Listener>()
 
-/** Persists the JWT. Storage access is wrapped because it can throw (e.g. private mode). */
+/**
+ * Persists the JWT and the user returned at login (the API has no "who am I"
+ * endpoint). Storage access is wrapped because it can throw (e.g. private mode).
+ */
 export const tokenStore = {
   get(): string | null {
     try {
@@ -38,9 +44,25 @@ export const tokenStore = {
       /* ignore */
     }
   },
+  getUser(): User | null {
+    try {
+      const raw = localStorage.getItem(USER_KEY)
+      return raw ? (JSON.parse(raw) as User) : null
+    } catch {
+      return null
+    }
+  },
+  setUser(user: User): void {
+    try {
+      localStorage.setItem(USER_KEY, JSON.stringify(user))
+    } catch {
+      /* ignore */
+    }
+  },
   clear(): void {
     try {
       localStorage.removeItem(TOKEN_KEY)
+      localStorage.removeItem(USER_KEY)
     } catch {
       /* ignore */
     }
