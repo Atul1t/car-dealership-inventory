@@ -9,8 +9,10 @@ from sqlalchemy.orm import Session
 from app.db.session import get_db
 from app.models.user import User
 from app.repositories.user_repository import UserRepository
+from app.repositories.vehicle_repository import VehicleRepository
 from app.services.auth_service import AuthService
-from app.services.exceptions import AuthenticationError
+from app.services.exceptions import AuthenticationError, PermissionDeniedError
+from app.services.vehicle_service import VehicleService
 
 DbSession = Annotated[Session, Depends(get_db)]
 
@@ -32,3 +34,19 @@ def get_current_user(
 
 
 CurrentUser = Annotated[User, Depends(get_current_user)]
+
+
+def require_admin(current_user: CurrentUser) -> User:
+    if not current_user.is_admin:
+        raise PermissionDeniedError("Admin privileges required")
+    return current_user
+
+
+AdminUser = Annotated[User, Depends(require_admin)]
+
+
+def get_vehicle_service(db: DbSession) -> VehicleService:
+    return VehicleService(VehicleRepository(db))
+
+
+VehicleServiceDep = Annotated[VehicleService, Depends(get_vehicle_service)]
