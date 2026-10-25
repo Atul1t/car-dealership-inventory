@@ -8,7 +8,7 @@ A full-stack inventory system for a car dealership, built test-first for the Inc
 |---|---|
 | **Backend** | Python 3.11+, FastAPI, SQLAlchemy 2, Alembic, PostgreSQL 16, PyJWT, bcrypt |
 | **Frontend** | React 19, TypeScript, Vite, Tailwind CSS v4, React Router |
-| **Testing** | pytest + pytest-cov (108 tests, 99% coverage), Vitest + Testing Library (62 tests, 97% coverage) |
+| **Testing** | pytest + pytest-cov (105 tests, 99% coverage), Vitest + Testing Library (64 tests, 97% coverage) |
 | **Tooling** | Docker Compose (Postgres), GitHub Actions CI |
 
 ---
@@ -111,24 +111,22 @@ TEST_DATABASE_URL=postgresql+psycopg://postgres:postgres@localhost:5432/dealersh
 cd frontend && npm test          # or: npm run coverage
 ```
 
-📄 **[Full test report](docs/TEST_REPORT.md)**: 108 backend tests (99% coverage) and 62 frontend tests (97% coverage), all passing.
+📄 **[Full test report](docs/TEST_REPORT.md)**: 105 backend tests (99% coverage) and 64 frontend tests (97% coverage), all passing.
 
 ---
 
 ## API reference
 
-All `/api/vehicles` routes need an `Authorization: Bearer <token>` header. 🔒 means admin only.
+The API exposes **exactly** the endpoints listed in the kata requirements (`tests/test_api_contract.py` checks this). All `/api/vehicles` routes are protected and need an `Authorization: Bearer <token>` header. 🔒 means admin only, as the spec states.
 
 | Method | Path | Description | Success | Errors |
 |---|---|---|---|---|
 | `POST` | `/api/auth/register` | Create an account (`name`, `email`, `password` ≥ 8 chars) | 201 | 409 duplicate email, 422 |
 | `POST` | `/api/auth/login` | Returns `{access_token, token_type, user}` | 200 | 401 |
-| `GET` | `/api/auth/me` | The current user | 200 | 401 |
-| `GET` | `/api/vehicles` | All vehicles, sorted by make and model. `?in_stock=true` hides sold-out ones | 200 | 401 |
+| `GET` | `/api/vehicles` | All vehicles (including sold-out ones), sorted by make and model | 200 | 401 |
 | `GET` | `/api/vehicles/search` | `make`, `model` (partial, case-insensitive), `category` (exact, case-insensitive), `min_price`, `max_price` (inclusive) | 200 | 400 inverted range, 422 |
-| `GET` | `/api/vehicles/{id}` | One vehicle | 200 | 404 |
-| `POST` | `/api/vehicles` 🔒 | Add a vehicle (`make`, `model`, `category`, `price` > 0, `quantity` ≥ 0) | 201 | 403, 422 |
-| `PUT` | `/api/vehicles/{id}` 🔒 | Update any subset of fields | 200 | 403, 404, 422 |
+| `POST` | `/api/vehicles` | Add a vehicle (`make`, `model`, `category`, `price` > 0, `quantity` ≥ 0) | 201 | 422 |
+| `PUT` | `/api/vehicles/{id}` | Update any subset of fields | 200 | 404, 422 |
 | `DELETE` | `/api/vehicles/{id}` 🔒 | Delete a vehicle | 204 | 403, 404 |
 | `POST` | `/api/vehicles/{id}/purchase` | Buy `{quantity}` units (body optional, default 1) | 200 | 400 insufficient stock, 404 |
 | `POST` | `/api/vehicles/{id}/restock` 🔒 | Add `{quantity}` units (≥ 1) | 200 | 403, 404, 422 |
@@ -177,7 +175,8 @@ Services receive their repository through the constructor, so the unit tests swa
 
 ## Design decisions
 
-- **Admin-only writes.** The kata only names DELETE and restock as admin-only. Adding and editing vehicles are admin-only here too, because the frontend spec gives those forms to admins and a dealership's customers shouldn't edit its catalogue. Any signed-in user can view, search and purchase.
+- **Permissions follow the spec exactly.** Every vehicle endpoint needs a valid token. Only `DELETE /api/vehicles/:id` and `POST /api/vehicles/:id/restock` are admin-only, because those are the two the spec marks "(Admin only)". On the frontend, the add/update/delete forms are shown only to admins, because the spec lists them under "(For Admin Users)".
+- **No extra endpoints.** There's no "current user" endpoint, so the frontend keeps the user object returned by `POST /api/auth/login` alongside the token. Any 401 clears both and returns to the login page.
 - **Race-safe purchases.** Stock changes are a single conditional `UPDATE … SET quantity = quantity - n WHERE id = :id AND quantity >= n`. Two simultaneous purchases of the last car can't both succeed. Database `CHECK` constraints (`price > 0`, `quantity >= 0`) back up the API validation.
 - **Partial `PUT`.** Only the fields sent are changed, and explicit `null`s are rejected. The edit form sends only the fields that changed.
 - **Security details.**
@@ -245,4 +244,4 @@ Every commit where AI was involved has a `Co-authored-by: Claude <noreply@anthro
 
 ### Reflection
 
-AI made it possible to deliver a full-stack, well-tested project in a stack I don't use day to day. It was fastest at boilerplate and at listing edge cases I might have missed (concurrent purchases, wildcard injection, bcrypt's byte limit). Writing the tests first kept it honest: each generated implementation had to pass a test that stated the behaviour. That made the code easier to review than a big generated dump. What I still had to own was the set of decisions: the stack, admin-only writes, and how literally to read the spec. I also had to understand the code well enough to explain and change it.
+AI made it possible to deliver a full-stack, well-tested project in a stack I don't use day to day. It was fastest at boilerplate and at listing edge cases I might have missed (concurrent purchases, wildcard injection, bcrypt's byte limit). Writing the tests first kept it honest: each generated implementation had to pass a test that stated the behaviour. That made the code easier to review than a big generated dump. What I still had to own was the set of decisions: the stack, and reading the spec literally (permissions and the exact endpoint list). I also had to understand the code well enough to explain and change it.
