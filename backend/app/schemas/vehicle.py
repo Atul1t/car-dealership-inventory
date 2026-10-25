@@ -3,7 +3,7 @@
 from decimal import Decimal
 from typing import Annotated
 
-from pydantic import BaseModel, ConfigDict, Field, StringConstraints, field_validator
+from pydantic import BaseModel, ConfigDict, Field, StringConstraints, field_validator, model_validator
 
 # Text fields are trimmed and must not be blank after trimming.
 Make = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=50)]
@@ -19,6 +19,26 @@ class VehicleCreate(BaseModel):
     category: Category
     price: Price
     quantity: Quantity = 0
+
+
+class VehicleUpdate(BaseModel):
+    """Partial update: omitted fields keep their current value; explicit nulls are rejected."""
+
+    make: Make | None = None
+    model: ModelName | None = None
+    category: Category | None = None
+    price: Price | None = None
+    quantity: Quantity | None = None
+
+    @model_validator(mode="after")
+    def reject_explicit_nulls(self) -> "VehicleUpdate":
+        nulls = [name for name in self.model_fields_set if getattr(self, name) is None]
+        if nulls:
+            raise ValueError(f"Fields cannot be null: {', '.join(sorted(nulls))}")
+        return self
+
+    def changes(self) -> dict:
+        return self.model_dump(exclude_unset=True)
 
 
 class VehicleResponse(BaseModel):

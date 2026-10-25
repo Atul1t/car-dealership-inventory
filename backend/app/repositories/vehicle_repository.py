@@ -49,3 +49,14 @@ class VehicleRepository:
         self._db.commit()
         self._db.refresh(vehicle)
         return vehicle
+
+    def update(self, vehicle: Vehicle, changes: dict) -> Vehicle:
+        for field, value in changes.items():
+            setattr(vehicle, field, value)
+        self._db.commit()
+        self._db.refresh(vehicle)
+        return vehicle
+
+    def delete(self, vehicle: Vehicle) -> None:
+        self._db.delete(vehicle)
+        self._db.commit()

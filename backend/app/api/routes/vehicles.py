@@ -2,10 +2,10 @@
 
 from typing import Annotated
 
-from fastapi import APIRouter, Query, status
+from fastapi import APIRouter, Query, Response, status
 
 from app.api.deps import AdminUser, CurrentUser, VehicleServiceDep
-from app.schemas.vehicle import VehicleCreate, VehicleResponse, VehicleSearchCriteria
+from app.schemas.vehicle import VehicleCreate, VehicleResponse, VehicleSearchCriteria, VehicleUpdate
 
 router = APIRouter(prefix="/api/vehicles", tags=["vehicles"])
 
@@ -33,3 +33,14 @@ def search_vehicles(
 @router.get("/{vehicle_id}", response_model=VehicleResponse)
 def get_vehicle(vehicle_id: int, service: VehicleServiceDep, _: CurrentUser):
     return service.get(vehicle_id)
+
+
+@router.put("/{vehicle_id}", response_model=VehicleResponse)
+def update_vehicle(vehicle_id: int, payload: VehicleUpdate, service: VehicleServiceDep, _: AdminUser):
+    return service.update(vehicle_id, payload)
+
+
+@router.delete("/{vehicle_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_vehicle(vehicle_id: int, service: VehicleServiceDep, _: AdminUser) -> Response:
+    service.delete(vehicle_id)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)

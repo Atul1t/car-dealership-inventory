@@ -2,7 +2,7 @@
 
 from app.models.vehicle import Vehicle
 from app.repositories.vehicle_repository import VehicleRepository
-from app.schemas.vehicle import VehicleCreate, VehicleSearchCriteria
+from app.schemas.vehicle import VehicleCreate, VehicleSearchCriteria, VehicleUpdate
 from app.services.exceptions import BusinessRuleError, NotFoundError
 
 
@@ -36,3 +36,9 @@ class VehicleService:
             min_price=criteria.min_price,
             max_price=criteria.max_price,
         )
+
+    def update(self, vehicle_id: int, data: VehicleUpdate) -> Vehicle:
+        return self._vehicles.update(self.get(vehicle_id), data.changes())
+
+    def delete(self, vehicle_id: int) -> None:
+        self._vehicles.delete(self.get(vehicle_id))
