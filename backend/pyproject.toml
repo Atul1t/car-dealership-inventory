@@ -1,0 +1,17 @@
+[project]
+name = "car-dealership-backend"
+version = "0.1.0"
+description = "RESTful API for the Car Dealership Inventory System"
+requires-python = ">=3.11"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
+
+[tool.coverage.run]
+source = ["app"]
+omit = ["app/scripts/*"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = false
