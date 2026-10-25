@@ -24,10 +24,6 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
 
-    @app.get("/api/health", tags=["health"])
-    def health() -> dict[str, str]:
-        return {"status": "ok"}
-
     register_error_handlers(app)
     app.include_router(auth.router)
     app.include_router(vehicles.router)

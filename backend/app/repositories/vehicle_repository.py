@@ -15,11 +15,8 @@ class VehicleRepository:
     def get(self, vehicle_id: int) -> Vehicle | None:
         return self._db.get(Vehicle, vehicle_id)
 
-    def list_all(self, *, in_stock_only: bool = False) -> list[Vehicle]:
-        query = select(Vehicle).order_by(Vehicle.make, Vehicle.model, Vehicle.id)
-        if in_stock_only:
-            query = query.where(Vehicle.quantity > 0)
-        return list(self._db.scalars(query))
+    def list_all(self) -> list[Vehicle]:
+        return list(self._db.scalars(select(Vehicle).order_by(Vehicle.make, Vehicle.model, Vehicle.id)))
 
     def search(
         self,

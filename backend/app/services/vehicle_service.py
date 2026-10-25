@@ -13,8 +13,8 @@ class VehicleService:
     def create(self, data: VehicleCreate) -> Vehicle:
         return self._vehicles.add(**data.model_dump())
 
-    def list_all(self, *, in_stock_only: bool = False) -> list[Vehicle]:
-        return self._vehicles.list_all(in_stock_only=in_stock_only)
+    def list_all(self) -> list[Vehicle]:
+        return self._vehicles.list_all()
 
     def get(self, vehicle_id: int) -> Vehicle:
         vehicle = self._vehicles.get(vehicle_id)

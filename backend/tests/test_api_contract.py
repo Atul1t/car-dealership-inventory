@@ -1,7 +1,5 @@
 """The API must expose exactly the endpoints listed in the kata requirements, no more and no less."""
 
-from fastapi.routing import APIRoute
-
 from app.main import create_app
 
 REQUIRED_ENDPOINTS = {
@@ -18,11 +16,8 @@ REQUIRED_ENDPOINTS = {
 
 
 def test_exposes_exactly_the_required_endpoints():
-    routes = {
-        (method, route.path)
-        for route in create_app().routes
-        if isinstance(route, APIRoute)
-        for method in route.methods
-    }
+    # Read from the generated OpenAPI schema, which lists every API operation.
+    paths = create_app().openapi()["paths"]
+    routes = {(method.upper(), path) for path, operations in paths.items() for method in operations}
 
     assert routes == REQUIRED_ENDPOINTS
