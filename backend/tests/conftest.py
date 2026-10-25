@@ -66,3 +66,40 @@ def client() -> Iterator[TestClient]:
     app.dependency_overrides[get_db] = override_get_db
     with TestClient(app) as test_client:
         yield test_client
+
+
+# ---------------------------------------------------------------------------
+# Auth helpers
+# ---------------------------------------------------------------------------
+
+
+def _login_headers(client: TestClient, email: str, password: str) -> dict[str, str]:
+    response = client.post("/api/auth/login", json={"email": email, "password": password})
+    assert response.status_code == 200, response.text
+    return {"Authorization": f"Bearer {response.json()['access_token']}"}
+
+
+@pytest.fixture
+def user_headers(client: TestClient) -> dict[str, str]:
+    """Authorization header for a freshly registered regular customer."""
+    client.post(
+        "/api/auth/register",
+        json={"name": "Regular User", "email": "user@example.com", "password": "password123"},
+    )
+    return _login_headers(client, "user@example.com", "password123")
+
+
+@pytest.fixture
+def admin_headers(client: TestClient, db_session: Session) -> dict[str, str]:
+    """Authorization header for an admin. Admins can't self-register, so insert one directly."""
+    from app.core.security import hash_password
+    from app.models.user import UserRole
+    from app.repositories.user_repository import UserRepository
+
+    UserRepository(db_session).add(
+        name="Admin",
+        email="admin@example.com",
+        hashed_password=hash_password("adminpass123"),
+        role=UserRole.ADMIN,
+    )
+    return _login_headers(client, "admin@example.com", "adminpass123")
