@@ -32,9 +32,9 @@ class VehicleRepository:
     ) -> list[Vehicle]:
         query = select(Vehicle).order_by(Vehicle.make, Vehicle.model, Vehicle.id)
         if make:
-            query = query.where(Vehicle.make.ilike(f"%{make}%"))
+            query = query.where(Vehicle.make.icontains(make, autoescape=True))
         if model:
-            query = query.where(Vehicle.model.ilike(f"%{model}%"))
+            query = query.where(Vehicle.model.icontains(model, autoescape=True))
         if category:
             query = query.where(func.lower(Vehicle.category) == category.lower())
         if min_price is not None:
