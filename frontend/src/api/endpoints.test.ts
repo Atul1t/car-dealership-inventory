@@ -1,9 +1,10 @@
 import { authApi } from './auth'
 import * as client from './client'
 import { vehiclesApi } from './vehicles'
+import type { MockInstance } from 'vitest'
 
 describe('endpoint functions', () => {
-  let request: ReturnType<typeof vi.spyOn>
+  let request: MockInstance<typeof client.apiRequest>
 
   beforeEach(() => {
     request = vi.spyOn(client, 'apiRequest').mockResolvedValue(undefined)
