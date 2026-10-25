@@ -13,7 +13,6 @@ describe('endpoint functions', () => {
   it.each([
     ['register', () => authApi.register({ name: 'A', email: 'a@b.co', password: 'password1' }), '/api/auth/register', { method: 'POST', body: { name: 'A', email: 'a@b.co', password: 'password1' } }],
     ['login', () => authApi.login({ email: 'a@b.co', password: 'password1' }), '/api/auth/login', { method: 'POST', body: { email: 'a@b.co', password: 'password1' } }],
-    ['me', () => authApi.me(), '/api/auth/me', undefined],
     ['list', () => vehiclesApi.list(), '/api/vehicles', undefined],
     ['search', () => vehiclesApi.search({ make: 'Tata', min_price: 5 }), '/api/vehicles/search', { params: { make: 'Tata', min_price: 5 } }],
     ['create', () => vehiclesApi.create({ make: 'Tata', model: 'Punch', category: 'SUV', price: 1, quantity: 1 }), '/api/vehicles', { method: 'POST', body: { make: 'Tata', model: 'Punch', category: 'SUV', price: 1, quantity: 1 } }],

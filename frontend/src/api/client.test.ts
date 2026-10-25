@@ -76,8 +76,9 @@ describe('apiRequest', () => {
     })
   })
 
-  it('notifies listeners and clears the token on 401', async () => {
+  it('notifies listeners and clears the saved session on 401', async () => {
     tokenStore.set('expired')
+    tokenStore.setUser({ id: 1, name: 'A', email: 'a@b.co', role: 'user' })
     const onUnauthorized = vi.fn()
     const unsubscribe = tokenStore.onUnauthorized(onUnauthorized)
     mockFetch(401, { detail: 'Invalid or expired token' })
@@ -85,6 +86,7 @@ describe('apiRequest', () => {
     await expect(apiRequest('/api/vehicles')).rejects.toBeInstanceOf(ApiError)
 
     expect(tokenStore.get()).toBeNull()
+    expect(tokenStore.getUser()).toBeNull()
     expect(onUnauthorized).toHaveBeenCalledOnce()
     unsubscribe()
   })
@@ -96,5 +98,21 @@ describe('apiRequest', () => {
       status: 0,
       message: 'Cannot reach the server. Is the API running?',
     })
+  })
+})
+
+describe('tokenStore user persistence', () => {
+  it('round-trips the signed-in user', () => {
+    const user = { id: 7, name: 'Asha', email: 'asha@example.com', role: 'admin' as const }
+
+    tokenStore.setUser(user)
+
+    expect(tokenStore.getUser()).toEqual(user)
+  })
+
+  it('returns null for corrupted stored data', () => {
+    localStorage.setItem('dealership.user', '{not json')
+
+    expect(tokenStore.getUser()).toBeNull()
   })
 })

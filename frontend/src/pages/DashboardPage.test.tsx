@@ -2,7 +2,7 @@ import { screen, waitFor, within } from '@testing-library/react'
 import { authApi } from '../api/auth'
 import { ApiError, tokenStore } from '../api/client'
 import { vehiclesApi } from '../api/vehicles'
-import { admin, customer, makeVehicle, renderApp } from '../test/utils'
+import { admin, customer, makeVehicle, renderApp, storeSession } from '../test/utils'
 import type { User } from '../types'
 
 vi.mock('../api/auth')
@@ -13,8 +13,7 @@ const creta = makeVehicle({ id: 2, make: 'Hyundai', model: 'Creta', category: 'S
 const seltos = makeVehicle({ id: 3, make: 'Kia', model: 'Seltos', category: 'SUV', price: 1090000, quantity: 0 })
 
 async function openDashboard(as: User = customer, vehicles = [nexon, creta, seltos]) {
-  tokenStore.set('token')
-  vi.mocked(authApi.me).mockResolvedValue(as)
+  storeSession(as)
   vi.mocked(vehiclesApi.list).mockResolvedValue(vehicles)
   const utils = renderApp('/')
   await screen.findByRole('heading', { name: /showroom inventory/i })
@@ -49,8 +48,7 @@ describe('DashboardPage – browsing', () => {
   })
 
   it('shows an error when the inventory fails to load', async () => {
-    tokenStore.set('token')
-    vi.mocked(authApi.me).mockResolvedValue(customer)
+    storeSession(customer)
     vi.mocked(vehiclesApi.list).mockRejectedValue(new ApiError(500, 'Database unavailable'))
     renderApp('/')
 
